@@ -4,34 +4,48 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>GLO 書影メーカー</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;500;700;800&family=Zen+Maru+Gothic:wght@500;700;900&display=swap" rel="stylesheet" />
 <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
 <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
 <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 <style>
   * { box-sizing: border-box; }
-  body { margin: 0; background: #F4F1EA; color: #2B2B2B; font-family: 'Hiragino Kaku Gothic ProN', 'Yu Gothic', 'Meiryo', sans-serif; }
+  body { margin: 0; background: #FFFFFF; color: #333333; font-family: 'M PLUS Rounded 1c','Zen Maru Gothic',sans-serif; }
   input, select, textarea, button { font-family: inherit; }
-  .wrap { max-width: 1040px; margin: 0 auto; padding: 20px 16px 60px; }
-  .card { background: #fff; border: 2px solid #E4DFD3; border-radius: 18px; padding: 22px; }
-  .label { font-size: 13px; font-weight: 800; color: #0B5C2E; margin: 0 0 6px; display: block; }
-  .inp { width: 100%; border: 2px solid #E4DFD3; border-radius: 12px; padding: 10px 14px; font-size: 14px; outline: none; }
+  .topbar { height: 6px; background: linear-gradient(90deg, #119A50, #0B7A3D); }
+  header.app { border-bottom: 2px solid #D9E8DD; background: #FFFFFF; padding: 12px 28px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 10; flex-wrap: wrap; gap: 8px; }
+  .brand { display: flex; align-items: center; gap: 8px; }
+  .badge { background: #119A50; color: #fff; font-family: 'Zen Maru Gothic', sans-serif; font-weight: 900; font-size: 14px; border-radius: 10px; padding: 5px 8px; letter-spacing: .05em; }
+  .brandname { font-family: 'Zen Maru Gothic', sans-serif; font-weight: 900; font-size: 20px; letter-spacing: .06em; }
+  .ver { background: #F7B500; color: #5B4300; font-weight: 900; font-size: 12px; border-radius: 999px; padding: 3px 10px; letter-spacing: .05em; }
+  .back { background: #fff; color: #0B7A3D; border: 2px solid #D9E8DD; border-radius: 999px; padding: 7px 16px; font-size: 13px; font-weight: 800; cursor: pointer; text-decoration: none; letter-spacing: .05em; }
+  .wrap { max-width: 1100px; margin: 0 auto; padding: 28px 24px 80px; }
+  .card { background: #fff; border: 2px solid #D9E8DD; border-radius: 18px; padding: 22px; }
+  h2.title { font-family: 'Zen Maru Gothic', sans-serif; font-size: 22px; font-weight: 900; margin: 0 0 4px; color: #085C2E; }
+  .lead { color: #333; font-size: 13px; line-height: 1.8; margin: 0; }
+  .label { font-size: 13px; font-weight: 800; color: #0B7A3D; margin: 0 0 6px; display: block; }
+  .inp { width: 100%; border: 2px solid #D9E8DD; border-radius: 12px; padding: 10px 14px; font-size: 14px; outline: none; background: #fff; }
+  .inp:focus { border-color: #119A50; }
   .row { margin-bottom: 16px; }
-  .btn { background: #0B5C2E; color: #fff; border: none; border-radius: 999px; padding: 14px 34px; font-size: 16px; font-weight: 800; cursor: pointer; }
+  .btn { background: #119A50; color: #fff; border: none; border-radius: 999px; padding: 14px 34px; font-size: 16px; font-weight: 800; cursor: pointer; letter-spacing: .05em; }
   .btn:disabled { opacity: .5; cursor: default; }
-  .btn2 { background: #fff; color: #0B5C2E; border: 2px solid #0B5C2E; border-radius: 999px; padding: 7px 14px; font-size: 12px; font-weight: 800; cursor: pointer; }
-  .preset { border: 2.5px solid #E4DFD3; border-radius: 12px; padding: 10px; cursor: pointer; background: #fff; text-align: left; }
-  .preset.on { border-color: #0B5C2E; background: #ECF5EF; }
-  .err { background: #FBEAE4; border: 2px solid #F0C3B4; border-radius: 12px; padding: 12px 16px; color: #B23A1E; font-weight: 800; font-size: 13px; margin-top: 14px; }
-  .muted { color: #8A8472; font-size: 12px; line-height: 1.7; }
-  h1 { font-size: 22px; margin: 0 0 4px; }
+  .btn2 { background: #fff; color: #0B7A3D; border: 2px solid #119A50; border-radius: 999px; padding: 7px 14px; font-size: 12px; font-weight: 800; cursor: pointer; }
+  .preset { border: 2.5px solid #D9E8DD; border-radius: 14px; padding: 11px 12px; cursor: pointer; background: #fff; text-align: left; }
+  .preset.on { border-color: #119A50; background: #E3F4E9; }
+  .err { background: #FDEBE5; border: 2px solid #F3C3B4; border-radius: 12px; padding: 12px 16px; color: #E0532F; font-weight: 800; font-size: 13px; margin-top: 14px; }
+  .info { background: #F4FAF6; border: 2px solid #BFE3CD; border-radius: 12px; padding: 12px 16px; font-weight: 800; color: #0B7A3D; font-size: 13px; margin-top: 14px; }
+  .muted { color: #777777; font-size: 12px; line-height: 1.7; }
   .grid { display: grid; grid-template-columns: 1fr 360px; gap: 22px; }
-  @media (max-width: 800px) { .grid { grid-template-columns: 1fr; } }
-  .seg { display: inline-flex; border: 2px solid #E4DFD3; border-radius: 10px; overflow: hidden; }
-  .seg button { border: none; background: #fff; padding: 7px 12px; font-size: 12px; font-weight: 800; cursor: pointer; color: #2B2B2B; }
-  .seg button.on { background: #0B5C2E; color: #fff; }
-  .adj { background: #FAF8F2; border: 2px solid #E4DFD3; border-radius: 14px; padding: 16px; margin-top: 16px; }
+  @media (max-width: 820px) { .grid { grid-template-columns: 1fr; } header.app { padding: 10px 14px; } .brandname { font-size: 15px; } .wrap { padding: 20px 14px 80px; } }
+  .seg { display: inline-flex; border: 2px solid #D9E8DD; border-radius: 10px; overflow: hidden; }
+  .seg button { border: none; background: #fff; padding: 7px 12px; font-size: 12px; font-weight: 800; cursor: pointer; color: #333; }
+  .seg button.on { background: #119A50; color: #fff; }
+  .adj { background: #F4FAF6; border: 2px solid #D9E8DD; border-radius: 14px; padding: 16px; margin-top: 16px; }
   .adjrow { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 12px; flex-wrap: wrap; }
-  .pill { display: inline-flex; align-items: center; gap: 8px; background: #ECF5EF; border: 2px solid #BBDEC8; border-radius: 999px; padding: 4px 6px 4px 12px; font-size: 12px; font-weight: 800; color: #0B5C2E; }
+  .pill { display: inline-flex; align-items: center; gap: 8px; background: #E3F4E9; border: 2px solid #BFE3CD; border-radius: 999px; padding: 4px 6px 4px 12px; font-size: 12px; font-weight: 800; color: #0B7A3D; }
+  .stepbox { background: #F4FAF6; border: 2px solid #D9E8DD; border-radius: 14px; padding: 14px 16px; margin-top: 4px; }
 </style>
 </head>
 <body>
@@ -39,13 +53,18 @@
 <script type="text/babel">
 const { useState, useRef, useEffect } = React;
 
-// ===== 設定（あなたのSupabase）=====
 var SUPABASE_URL = "https://xcxwvrgjkhtgksufplvw.supabase.co";
 var PUBLISHABLE_KEY = "sb_publishable_eOkAEuN4FiFhwvtAGFdOmA_ZyNOwLdI";
 var IMG_FN = SUPABASE_URL + "/functions/v1/generate-cover-image";
+var STUDIO_URL = "https://claude.ai/";
 
-// 四六判 仕上がり 188mm×128mm（縦横比 188:128）。内部解像度 1024×1504、書き出し2倍。
+// 四六判 仕上がり 188mm×128mm（縦横比 188:128）。内部 1024×1504、書き出し2倍。
 var COVER = { w: 1024, h: 1504 };
+
+var C = {
+  green: "#119A50", greenDeep: "#0B7A3D", greenDark: "#085C2E", greenPale: "#E3F4E9",
+  ink: "#333333", inkSoft: "#777777", line: "#D9E8DD", yellow: "#F7B500", red: "#E0532F",
+};
 
 var PRESETS = [
   { id: "bungei", label: "文芸・実写写真風", desc: "リアルで物語性のある",
@@ -68,7 +87,6 @@ var PRESETS = [
     pos: "top", color: "#FFFFFF", obiColor: "#C0392B", obiTextColor: "#FFFFFF", font: "maru", plate: "soft", tscale: 1 },
 ];
 
-// 生成プロンプト（文字は描かず、タイトル/著者/帯の“スペース”を確保した、プロ装丁の構図を作らせる）
 function buildPrompt(preset, genre, content) {
   var lines = [
     "日本の商業出版で使う、縦長の書籍表紙のためのビジュアルを作成してください。Amazonの商品画像や書店店頭に並んでも違和感のない、本物の書影らしい上質な完成度にしてください。",
@@ -84,16 +102,12 @@ function buildPrompt(preset, genre, content) {
 }
 
 var FONT_STACK = {
-  mincho: "'Hiragino Mincho ProN','Yu Mincho','YuMincho','MS Mincho',serif",
-  gothic: "'Hiragino Kaku Gothic ProN','Yu Gothic','Meiryo',sans-serif",
-  maru: "'Hiragino Maru Gothic ProN','M PLUS Rounded 1c',sans-serif",
+  mincho: "'Yu Mincho','Hiragino Mincho ProN','MS Mincho',serif",
+  gothic: "'Hiragino Sans','Yu Gothic','Meiryo',sans-serif",
+  maru: "'M PLUS Rounded 1c','Zen Maru Gothic',sans-serif",
 };
 
-function wrapByCount(text, per) {
-  var lines = [];
-  for (var i = 0; i < text.length; i += per) lines.push(text.slice(i, i + per));
-  return lines;
-}
+function wrapByCount(text, per) { var l = []; for (var i = 0; i < text.length; i += per) l.push(text.slice(i, i + per)); return l; }
 function wrapTitle(title) {
   var len = title.length, per;
   if (len <= 8) per = len; else if (len <= 16) per = Math.ceil(len / 2);
@@ -106,15 +120,10 @@ function isLight(hex) {
   return (0.299 * r + 0.587 * g + 0.114 * b) > 140;
 }
 function roundRect(ctx, x, y, w, h, r) {
-  ctx.beginPath();
-  ctx.moveTo(x + r, y);
-  ctx.arcTo(x + w, y, x + w, y + h, r);
-  ctx.arcTo(x + w, y + h, x, y + h, r);
-  ctx.arcTo(x, y + h, x, y, r);
-  ctx.arcTo(x, y, x + w, y, r);
-  ctx.closePath();
+  ctx.beginPath(); ctx.moveTo(x + r, y);
+  ctx.arcTo(x + w, y, x + w, y + h, r); ctx.arcTo(x + w, y + h, x, y + h, r);
+  ctx.arcTo(x, y + h, x, y, r); ctx.arcTo(x, y, x + w, y, r); ctx.closePath();
 }
-
 function extractImage(data) {
   if (!data) return null;
   function norm(s) { if (typeof s !== "string" || !s) return null; return (s.indexOf("data:") === 0 || s.indexOf("http") === 0) ? s : ("data:image/png;base64," + s); }
@@ -173,23 +182,19 @@ function composite(img, o) {
     var plateH = blockH + padY * 2;
     var px = (W - plateW) / 2, py = topY - padY;
     ctx.fillStyle = light ? ("rgba(0,0,0," + alpha + ")") : ("rgba(255,255,255," + alpha + ")");
-    roundRect(ctx, px, py, plateW, plateH, tSize * 0.3);
-    ctx.fill();
+    roundRect(ctx, px, py, plateW, plateH, tSize * 0.3); ctx.fill();
   }
 
   ctx.textAlign = "center"; ctx.textBaseline = "middle";
   ctx.font = "700 " + tSize + "px " + font;
-  ctx.lineJoin = "round";
-  ctx.lineWidth = tSize * 0.14;
+  ctx.lineJoin = "round"; ctx.lineWidth = tSize * 0.14;
   ctx.strokeStyle = light ? "rgba(0,0,0,0.55)" : "rgba(255,255,255,0.7)";
-  ctx.shadowColor = light ? "rgba(0,0,0,0.45)" : "rgba(255,255,255,0.35)";
-  ctx.shadowBlur = tSize * 0.18;
+  ctx.shadowColor = light ? "rgba(0,0,0,0.45)" : "rgba(255,255,255,0.35)"; ctx.shadowBlur = tSize * 0.18;
   var ty0 = topY + tSize / 2;
   for (var i = 0; i < tLines.length; i++) {
     var yy = ty0 + i * gap;
     ctx.strokeText(tLines[i], W / 2, yy);
-    ctx.fillStyle = o.color;
-    ctx.fillText(tLines[i], W / 2, yy);
+    ctx.fillStyle = o.color; ctx.fillText(tLines[i], W / 2, yy);
   }
   ctx.shadowBlur = 0;
 
@@ -206,7 +211,7 @@ function composite(img, o) {
     var ot = o.obi.trim();
     var oLines = ot.length > 16 ? wrapByCount(ot, Math.ceil(ot.length / 2)) : [ot];
     var oSize = Math.min(W * 0.9 / Math.max(oLines[0].length, 1), W * 0.07);
-    ctx.font = "800 " + oSize + "px " + FONT_STACK.gothic; ctx.fillStyle = o.obiTextColor || "#FFFFFF";
+    ctx.font = "800 " + oSize + "px " + FONT_STACK.maru; ctx.fillStyle = o.obiTextColor || "#FFFFFF";
     for (var j = 0; j < oLines.length; j++) ctx.fillText(oLines[j], W / 2, (H - obiH / 2) + (j - (oLines.length - 1) / 2) * oSize * 1.25);
   }
   return c.toDataURL("image/png");
@@ -218,7 +223,7 @@ function App() {
   var o = useState(""); var obi = o[0], setObi = o[1];
   var th = useState(""); var theme = th[0], setTheme = th[1];
   var gn = useState(""); var genre = gn[0], setGenre = gn[1];
-  var pr = useState("watercolor"); var presetId = pr[0], setPresetId = pr[1];
+  var pr = useState("bungei"); var presetId = pr[0], setPresetId = pr[1];
   var rf = useState(""); var refImage = rf[0], setRefImage = rf[1];
   var bz = useState(""); var busy = bz[0], setBusy = bz[1];
   var er = useState(""); var err = er[0], setErr = er[1];
@@ -230,7 +235,7 @@ function App() {
   var tc = useState("#FFFFFF"); var tcolor = tc[0], setTcolor = tc[1];
   var pl = useState("soft"); var plate = pl[0], setPlate = pl[1];
   var af = useState("mincho"); var activeFont = af[0], setActiveFont = af[1];
-  var ao = useState({ c: "#0B3D2E", t: "#FFFFFF" }); var activeObi = ao[0], setActiveObi = ao[1];
+  var ao = useState({ c: "#11332A", t: "#FFFFFF" }); var activeObi = ao[0], setActiveObi = ao[1];
 
   var bgRef = useRef(null);
   var preset = PRESETS.filter(function (p) { return p.id === presetId; })[0] || PRESETS[0];
@@ -246,7 +251,6 @@ function App() {
       setCover(png);
     } catch (e) { setErr("文字の書き出しに失敗しました（CORS制限の可能性）。"); }
   }
-
   useEffect(function () { if (hasBg) recompose(); }, [title, author, obi, pos, tscale, tcolor, plate, hasBg]);
 
   function onRefFile(e) {
@@ -262,10 +266,8 @@ function App() {
     setBusy("AIがイラストを生成しています…（30秒〜1分ほど）");
     var body = { prompt: prompt, size: "portrait" };
     if (refImage) {
-      var parts = refImage.split(",");
-      body.reference = parts[1];
-      var m = refImage.match(/^data:([^;]+);/);
-      body.referenceMime = m ? m[1] : "image/png";
+      var parts = refImage.split(","); body.reference = parts[1];
+      var m = refImage.match(/^data:([^;]+);/); body.referenceMime = m ? m[1] : "image/png";
     }
     fetch(IMG_FN, {
       method: "POST",
@@ -283,8 +285,7 @@ function App() {
       })
       .then(function (img) {
         bgRef.current = img;
-        setActiveFont(preset.font);
-        setActiveObi({ c: preset.obiColor, t: preset.obiTextColor });
+        setActiveFont(preset.font); setActiveObi({ c: preset.obiColor, t: preset.obiTextColor });
         setPos(preset.pos); setTcolor(preset.color); setTscale(preset.tscale || 1); setPlate(preset.plate || "soft");
         setBusy(""); setHasBg(true);
       })
@@ -309,84 +310,97 @@ function App() {
   }
 
   return (
-    <div className="wrap">
-      <div style={{ marginBottom: 16 }}>
-        <h1>📕 GLO 書影メーカー</h1>
-        <div className="muted">タイトルや内容を入れて画風を選び、「書影を作る」を押すと、あなた専用の表紙イラストをAIが生成し、文字を重ねて完成書影にします。サイズは四六判（仕上がり188×128mm）。</div>
-      </div>
-      <div className="grid">
-        <div className="card">
-          <div className="row"><label className="label">タイトル</label><input className="inp" value={title} onChange={function (e) { setTitle(e.target.value); }} placeholder="作品タイトル" /></div>
-          <div className="row"><label className="label">著者名・ペンネーム（任意）</label><input className="inp" value={author} onChange={function (e) { setAuthor(e.target.value); }} placeholder="例：白川 ことね" /></div>
-          <div className="row"><label className="label">帯のキャッチコピー（任意）</label><input className="inp" value={obi} onChange={function (e) { setObi(e.target.value); }} placeholder="例：もう一度、恋をしてもいいですか。（空なら帯なし）" /></div>
-          <div className="row"><label className="label">ジャンル（任意）</label><input className="inp" value={genre} onChange={function (e) { setGenre(e.target.value); }} placeholder="例：恋愛小説／ミステリー／実用書／エッセイ" /></div>
-          <div className="row"><label className="label">作品の内容・世界観（任意）</label><textarea className="inp" rows="2" value={theme} onChange={function (e) { setTheme(e.target.value); }} placeholder="例：温泉地を舞台にした大人の再生の物語" /></div>
+    <div>
+      <div className="topbar"></div>
+      <header className="app">
+        <div className="brand">
+          <span className="badge">GLO</span>
+          <span className="brandname"><span style={{ color: C.green }}>書影</span>メーカー</span>
+          <span className="ver">v1</span>
+        </div>
+        <a className="back" href={STUDIO_URL}>← 連載小説スタジオへ</a>
+      </header>
 
-          <div className="row">
-            <label className="label">書影デザインプリセット</label>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
-              {PRESETS.map(function (p) {
-                return (
-                  <button key={p.id} className={"preset" + (presetId === p.id ? " on" : "")} onClick={function () { setPresetId(p.id); }}>
-                    <div style={{ fontWeight: 800, fontSize: 13 }}>{presetId === p.id ? "✓ " : ""}{p.label}</div>
-                    <div className="muted">{p.desc}</div>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
-          <div className="row">
-            <label className="label">参考画像（任意・似せて生成）</label>
-            <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
-              <label className="btn2" style={{ display: "inline-block" }}>
-                📎 参考画像を選ぶ
-                <input type="file" accept="image/*" style={{ display: "none" }} onChange={onRefFile} />
-              </label>
-              {refImage ? (
-                <span className="pill">✓ 参考画像あり
-                  <button className="btn2" style={{ borderColor: "#B23A1E", color: "#B23A1E" }} onClick={function () { setRefImage(""); }}>× 外す</button>
-                </span>
-              ) : null}
-              {refImage ? <img src={refImage} alt="参考" style={{ height: 56, borderRadius: 8, border: "2px solid #E4DFD3" }} /> : null}
-            </div>
-            <div className="muted" style={{ marginTop: 6 }}>アップロードした画像の色調・雰囲気・構図に似せて生成します。</div>
-          </div>
-
-          <div style={{ textAlign: "center", marginTop: 8 }}>
-            <button className="btn" onClick={run} disabled={!!busy}>✨ 書影を作る</button>
-            <div className="muted" style={{ marginTop: 8 }}>生成には30秒〜1分ほどかかります。</div>
-          </div>
-          {busy ? <div style={{ marginTop: 14, background: "#ECF5EF", border: "2px solid #BBDEC8", borderRadius: 12, padding: "12px 16px", fontWeight: 800, color: "#0B5C2E", fontSize: 13 }}>{busy}</div> : null}
-          {err ? <div className="err">⚠ {err}</div> : null}
-
-          {hasBg ? (
-            <div className="adj">
-              <div className="label" style={{ marginBottom: 12 }}>仕上がりの微調整（再生成せず即反映）</div>
-              <div className="adjrow"><span className="muted" style={{ fontWeight: 800 }}>タイトル位置</span>
-                <Seg value={pos} onChange={setPos} opts={[{ v: "top", label: "上" }, { v: "center", label: "中央" }, { v: "bottom", label: "下" }]} /></div>
-              <div className="adjrow"><span className="muted" style={{ fontWeight: 800 }}>文字の大きさ</span>
-                <input type="range" min="0.6" max="1.6" step="0.05" value={tscale} onChange={function (e) { setTscale(parseFloat(e.target.value)); }} style={{ flex: 1, minWidth: 120 }} /></div>
-              <div className="adjrow"><span className="muted" style={{ fontWeight: 800 }}>文字色</span>
-                <span style={{ display: "inline-flex", gap: 8, alignItems: "center" }}>
-                  <button className="btn2" onClick={function () { setTcolor("#FFFFFF"); }}>白</button>
-                  <button className="btn2" onClick={function () { setTcolor("#222222"); }}>黒</button>
-                  <input type="color" value={tcolor} onChange={function (e) { setTcolor(e.target.value); }} style={{ width: 38, height: 30, border: "none", background: "none" }} />
-                </span></div>
-              <div className="adjrow"><span className="muted" style={{ fontWeight: 800 }}>文字の下地</span>
-                <Seg value={plate} onChange={setPlate} opts={[{ v: "none", label: "なし" }, { v: "soft", label: "うすめ" }, { v: "strong", label: "しっかり" }]} /></div>
-            </div>
-          ) : null}
+      <div className="wrap">
+        <div style={{ marginBottom: 18 }}>
+          <h2 className="title">📕 書影（ブックカバー）を作る</h2>
+          <p className="lead">タイトル・著者名・内容・デザインを選んで<strong style={{ color: C.greenDeep }}>「書影を作る」</strong>を押すだけ。あなた専用の表紙イラストをAIが生成し、タイトル・帯をきれいに組んで完成書影にします。サイズは四六判（仕上がり188×128mm）。日本語の文字は崩れずきれいに表示されます。</p>
         </div>
 
-        <div>
-          <div className="card" style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 14, background: "#FAF8F2", position: "sticky", top: 16 }}>
-            <div className="label" style={{ alignSelf: "flex-start" }}>● プレビュー（四六判 188×128mm）</div>
-            {cover
-              ? <img src={cover} alt="書影" style={{ width: "100%", maxWidth: 300, borderRadius: 6, boxShadow: "0 14px 36px rgba(0,0,0,0.28)" }} />
-              : <div style={{ width: "100%", maxWidth: 280, aspectRatio: COVER.w + "/" + COVER.h, border: "2.5px dashed #E4DFD3", borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center", color: "#8A8472", fontSize: 13, textAlign: "center", padding: 16 }}>ここに完成書影が表示されます</div>}
-            {cover ? <button className="btn" onClick={save}>📥 PNGで保存</button> : null}
-            {cover ? <div className="muted" style={{ textAlign: "center" }}>左の「微調整」で位置・大きさ・色・下地を変えると、その場で反映されます。画風や内容を変えたい時は「書影を作る」で作り直し。</div> : null}
+        <div className="grid">
+          <div className="card">
+            <div className="row"><label className="label">タイトル</label><input className="inp" value={title} onChange={function (e) { setTitle(e.target.value); }} placeholder="作品タイトル" /></div>
+            <div className="row"><label className="label">著者名・ペンネーム（任意）</label><input className="inp" value={author} onChange={function (e) { setAuthor(e.target.value); }} placeholder="例：白川 ことね" /></div>
+            <div className="row"><label className="label">帯（オビ）のキャッチコピー（任意）</label><input className="inp" value={obi} onChange={function (e) { setObi(e.target.value); }} placeholder="例：もう一度、恋をしてもいいですか。（空なら帯なし）" /></div>
+            <div className="row"><label className="label">ジャンル（任意）</label><input className="inp" value={genre} onChange={function (e) { setGenre(e.target.value); }} placeholder="例：恋愛小説／ミステリー／実用書／エッセイ" /></div>
+            <div className="row"><label className="label">作品の内容・世界観（任意）</label><textarea className="inp" rows="2" value={theme} onChange={function (e) { setTheme(e.target.value); }} placeholder="例：温泉地を舞台にした大人の再生の物語" /></div>
+
+            <div className="row">
+              <label className="label">書影デザインプリセット</label>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+                {PRESETS.map(function (p) {
+                  return (
+                    <button key={p.id} className={"preset" + (presetId === p.id ? " on" : "")} onClick={function () { setPresetId(p.id); }}>
+                      <div style={{ fontWeight: 800, fontSize: 13, color: presetId === p.id ? C.greenDark : C.ink }}>{presetId === p.id ? "✓ " : ""}{p.label}</div>
+                      <div className="muted">{p.desc}</div>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            <div className="row">
+              <label className="label">参考画像（任意・似せて生成）</label>
+              <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
+                <label className="btn2" style={{ display: "inline-block" }}>
+                  📎 参考画像を選ぶ
+                  <input type="file" accept="image/*" style={{ display: "none" }} onChange={onRefFile} />
+                </label>
+                {refImage ? (
+                  <span className="pill">✓ 参考画像あり
+                    <button className="btn2" style={{ borderColor: C.red, color: C.red }} onClick={function () { setRefImage(""); }}>× 外す</button>
+                  </span>
+                ) : null}
+                {refImage ? <img src={refImage} alt="参考" style={{ height: 56, borderRadius: 8, border: "2px solid " + C.line }} /> : null}
+              </div>
+              <div className="muted" style={{ marginTop: 6 }}>アップロードした画像の色調・雰囲気・構図に似せて生成します。</div>
+            </div>
+
+            <div style={{ textAlign: "center", marginTop: 8 }}>
+              <button className="btn" onClick={run} disabled={!!busy}>✨ 書影を作る</button>
+              <div className="muted" style={{ marginTop: 8 }}>生成には30秒〜1分ほどかかります。</div>
+            </div>
+            {busy ? <div className="info">{busy}</div> : null}
+            {err ? <div className="err">⚠ {err}</div> : null}
+
+            {hasBg ? (
+              <div className="adj">
+                <div className="label" style={{ marginBottom: 12 }}>仕上がりの微調整（再生成せず即反映）</div>
+                <div className="adjrow"><span className="muted" style={{ fontWeight: 800 }}>タイトル位置</span>
+                  <Seg value={pos} onChange={setPos} opts={[{ v: "top", label: "上" }, { v: "center", label: "中央" }, { v: "bottom", label: "下" }]} /></div>
+                <div className="adjrow"><span className="muted" style={{ fontWeight: 800 }}>文字の大きさ</span>
+                  <input type="range" min="0.6" max="1.6" step="0.05" value={tscale} onChange={function (e) { setTscale(parseFloat(e.target.value)); }} style={{ flex: 1, minWidth: 120, accentColor: C.green }} /></div>
+                <div className="adjrow"><span className="muted" style={{ fontWeight: 800 }}>文字色</span>
+                  <span style={{ display: "inline-flex", gap: 8, alignItems: "center" }}>
+                    <button className="btn2" onClick={function () { setTcolor("#FFFFFF"); }}>白</button>
+                    <button className="btn2" onClick={function () { setTcolor("#222222"); }}>黒</button>
+                    <input type="color" value={tcolor} onChange={function (e) { setTcolor(e.target.value); }} style={{ width: 38, height: 30, border: "none", background: "none" }} />
+                  </span></div>
+                <div className="adjrow"><span className="muted" style={{ fontWeight: 800 }}>文字の下地</span>
+                  <Seg value={plate} onChange={setPlate} opts={[{ v: "none", label: "なし" }, { v: "soft", label: "うすめ" }, { v: "strong", label: "しっかり" }]} /></div>
+              </div>
+            ) : null}
+          </div>
+
+          <div>
+            <div className="card" style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 14, background: "#F4FAF6", position: "sticky", top: 80 }}>
+              <div className="label" style={{ alignSelf: "flex-start" }}>● プレビュー（四六判 188×128mm）</div>
+              {cover
+                ? <img src={cover} alt="書影" style={{ width: "100%", maxWidth: 300, borderRadius: 6, boxShadow: "0 14px 36px rgba(0,0,0,0.28)" }} />
+                : <div style={{ width: "100%", maxWidth: 280, aspectRatio: COVER.w + "/" + COVER.h, border: "2.5px dashed " + C.line, borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center", color: C.inkSoft, fontSize: 13, textAlign: "center", padding: 16, background: "#fff" }}>ここに完成書影が表示されます</div>}
+              {cover ? <button className="btn" onClick={save}>📥 PNGで保存</button> : null}
+              {cover ? <div className="muted" style={{ textAlign: "center" }}>左の「微調整」で位置・大きさ・色・下地を変えると、その場で反映されます。画風や内容を変えたい時は「書影を作る」で作り直し。</div> : null}
+            </div>
           </div>
         </div>
       </div>
