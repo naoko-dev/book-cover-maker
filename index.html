@@ -48,25 +48,40 @@ var IMG_FN = SUPABASE_URL + "/functions/v1/generate-cover-image";
 var COVER = { w: 1024, h: 1504 };
 
 var PRESETS = [
-  { id: "watercolor", label: "水彩イラスト", desc: "やわらかく情緒的",
-    style: function (t) { return "文字を一切含まない縦長の本の表紙イラスト。画風は上品な水彩。にじみとやわらかな光、情緒的な雰囲気。" + t + " 人物を描く場合は日本人・現代の服装で、うしろ姿や引きの構図にし顔を描き込みすぎない。画面の上部と下部にタイトルや帯を載せる余白をあける。文字・ロゴ・英字・署名・透かしは一切入れない。"; },
-    pos: "bottom", color: "#FFFFFF", obiColor: "#0B3D2E", obiTextColor: "#FFFFFF", font: "mincho" },
-  { id: "engraving", label: "銅版画調の肖像", desc: "重厚・セピア",
-    style: function (t) { return "文字を一切含まない縦長の本の表紙イラスト。画風は銅版画（エッチング）調で、セピア〜モノトーンの細密な線描。重厚でクラシックな雰囲気。" + t + " 中央に象徴的なモチーフや人物の肖像を据える。上部と下部に文字用の余白をあける。文字・ロゴ・英字・透かしは一切入れない。"; },
-    pos: "top", color: "#2A1C0E", obiColor: "#7A1F12", obiTextColor: "#FFF7E8", font: "mincho" },
-  { id: "anime", label: "アニメ・ラノベ調", desc: "明るく鮮やか",
-    style: function (t) { return "文字を一切含まない縦長の本の表紙イラスト。画風は明るく鮮やかなアニメ・ライトノベル調。クリーンな線と彩度の高い配色。" + t + " 現代的な日本人キャラクターを2人までで魅力的に描く。上部または下部に文字用の余白をあける。文字・ロゴ・英字・透かしは一切入れない。"; },
-    pos: "top", color: "#FFFFFF", obiColor: "#163E8C", obiTextColor: "#FFFFFF", font: "maru" },
-  { id: "photo", label: "写真・実写調", desc: "リアルで情感のある",
-    style: function (t) { return "文字を一切含まない縦長の本の表紙にふさわしい写真調・実写的なイメージ。自然光、浅い被写界深度、情感のある構図。" + t + " 人物は日本人・現代の服装で、うしろ姿や手元など顔を特定しすぎない。上部と下部に文字用の余白をあける。文字・ロゴ・英字・透かしは一切入れない。"; },
-    pos: "bottom", color: "#FFFFFF", obiColor: "#11332A", obiTextColor: "#FFFFFF", font: "mincho" },
-  { id: "painting", label: "油彩・絵画調", desc: "豊かな筆致でクラシック",
-    style: function (t) { return "文字を一切含まない縦長の本の表紙イラスト。画風は油彩・絵画調で、豊かな筆致と深みのある色彩。クラシックで上品な雰囲気。" + t + " 上部と下部に文字用の余白をあける。文字・ロゴ・英字・透かしは一切入れない。"; },
-    pos: "bottom", color: "#FBF3E0", obiColor: "#3A2A12", obiTextColor: "#FBF3E0", font: "mincho" },
-  { id: "minimal", label: "ミニマル・抽象", desc: "シンプルで洗練",
-    style: function (t) { return "文字を一切含まない縦長の本の表紙イラスト。画風はミニマルで抽象的。少ない色数、余白を生かした洗練された構成、象徴的な一つのモチーフ。" + t + " 上部と下部に文字用の余白をあける。文字・ロゴ・英字・透かしは一切入れない。"; },
-    pos: "top", color: "#222222", obiColor: "#222222", obiTextColor: "#FFFFFF", font: "gothic" },
+  { id: "bungei", label: "文芸・実写写真風", desc: "リアルで物語性のある",
+    spec: "写真のようにリアルで、物語の一場面を切り取ったような表紙。人物や部屋、街、光と影を使い、静かな緊張感や余韻を出す。色味は落ち着いたトーンで、文芸小説らしい重厚感を持たせる。",
+    pos: "bottom", color: "#FFFFFF", obiColor: "#11332A", obiTextColor: "#FFFFFF", font: "mincho", plate: "soft", tscale: 1 },
+  { id: "mystery", label: "ダークミステリー風", desc: "黒・青・影で緊張感",
+    spec: "黒・紺・青・白を中心に、暗く緊張感のあるミステリー小説の表紙。光と影のコントラストを強くし、事件性・謎・恐怖・孤独感が伝わる雰囲気。象徴的なモチーフを大きく印象的に配置する。",
+    pos: "center", color: "#FFFFFF", obiColor: "#0A1A33", obiTextColor: "#FFFFFF", font: "gothic", plate: "soft", tscale: 1.1 },
+  { id: "business", label: "ビジネス書タイポ風", desc: "余白と大きな文字",
+    spec: "白や淡い背景を基調に、タイトル文字を主役にしたビジネス書風。余白を広く取り、知的で信頼感のあるデザイン。装飾は最小限で、中央〜上部に大きな文字スペースを大きく確保する。背景はごくシンプルに。",
+    pos: "top", color: "#1A1A1A", obiColor: "#F2C200", obiTextColor: "#222222", font: "gothic", plate: "none", tscale: 1.2 },
+  { id: "pop", label: "ポップ実用書風", desc: "明るく親しみやすい",
+    spec: "明るい背景色を使い、親しみやすい人物イラストを複数配置した実用書風の表紙。堅すぎず読みやすく、テーマがひと目で伝わる。ユーモアや軽さを感じさせつつ、商業書籍としての完成度を保つ。",
+    pos: "top", color: "#1A1A1A", obiColor: "#E8552B", obiTextColor: "#FFFFFF", font: "maru", plate: "soft", tscale: 1.05 },
+  { id: "kurashi", label: "暮らしイラスト風", desc: "やさしく安心感のある",
+    spec: "クリーム色や淡いグリーンなど、やさしく清潔感のある色。シンプルな人物イラストと余白を活かし、安心感・実用性・読みやすさが伝わる表紙。中高年層にも伝わる穏やかで親切なデザイン。",
+    pos: "top", color: "#34432A", obiColor: "#6E8B3D", obiTextColor: "#FFFFFF", font: "maru", plate: "soft", tscale: 1 },
+  { id: "colorful", label: "カラフル物語風", desc: "個性的で印象的",
+    spec: "手描き感のあるカラフルなイラストで、動物・植物・自然・人物などを印象的に配置。絵本や寓話のような温かさと個性があり、書店で目を引く。色数は多めでも全体として統一感のある上質なデザイン。",
+    pos: "top", color: "#FFFFFF", obiColor: "#C0392B", obiTextColor: "#FFFFFF", font: "maru", plate: "soft", tscale: 1 },
 ];
+
+// 生成プロンプト（文字は描かず、タイトル/著者/帯の“スペース”を確保した、プロ装丁の構図を作らせる）
+function buildPrompt(preset, genre, content) {
+  var lines = [
+    "日本の商業出版で使う、縦長の書籍表紙のためのビジュアルを作成してください。Amazonの商品画像や書店店頭に並んでも違和感のない、本物の書影らしい上質な完成度にしてください。",
+    genre ? ("ジャンル: " + genre) : "",
+    content ? ("内容・世界観: " + content) : "",
+    "デザインの方向性: " + preset.spec,
+    "構図: タイトルを最も目立たせるための主役スペースを大きく確保し、著者名のスペース、画面下部に帯（オビ）を載せる横長の帯スペースも確保する。これらの文字スペースは絵柄を詰め込まず、すっきりした余白にして、遠目でも文字が映える構図にする。",
+    "重要: 文字・タイトル・キャッチコピー・英字・数字・ロゴ・透かし・署名は一切描かない（文字はあとで別途きれいに載せます）。崩れた文字や読めない日本語も描かない。",
+    "人物を描く場合は日本人・現代の服装にする。",
+    "避ける表現: 安っぽいポスター風、同人誌風、過剰な装飾、AI生成感の強い質感、不自然な人物、海外ペーパーバック風。プロの装丁デザイナーが制作したような上質さにする。",
+  ];
+  return lines.filter(Boolean).join(" ");
+}
 
 var FONT_STACK = {
   mincho: "'Hiragino Mincho ProN','Yu Mincho','YuMincho','MS Mincho',serif",
@@ -202,6 +217,7 @@ function App() {
   var a = useState(""); var author = a[0], setAuthor = a[1];
   var o = useState(""); var obi = o[0], setObi = o[1];
   var th = useState(""); var theme = th[0], setTheme = th[1];
+  var gn = useState(""); var genre = gn[0], setGenre = gn[1];
   var pr = useState("watercolor"); var presetId = pr[0], setPresetId = pr[1];
   var rf = useState(""); var refImage = rf[0], setRefImage = rf[1];
   var bz = useState(""); var busy = bz[0], setBusy = bz[1];
@@ -241,8 +257,7 @@ function App() {
   function run() {
     setErr("");
     if (!title.trim()) { setErr("タイトルを入力してください。"); return; }
-    var themeText = theme.trim() ? ("作品の内容・テーマ: " + theme.trim() + "。") : "";
-    var prompt = preset.style(themeText);
+    var prompt = buildPrompt(preset, genre.trim(), theme.trim());
     if (refImage) prompt = prompt + " 添付の参考画像の色調・雰囲気・構図に似せること。";
     setBusy("AIがイラストを生成しています…（30秒〜1分ほど）");
     var body = { prompt: prompt, size: "portrait" };
@@ -270,7 +285,7 @@ function App() {
         bgRef.current = img;
         setActiveFont(preset.font);
         setActiveObi({ c: preset.obiColor, t: preset.obiTextColor });
-        setPos(preset.pos); setTcolor(preset.color); setTscale(1); setPlate("soft");
+        setPos(preset.pos); setTcolor(preset.color); setTscale(preset.tscale || 1); setPlate(preset.plate || "soft");
         setBusy(""); setHasBg(true);
       })
       .catch(function (e) { setErr("生成に失敗しました：" + (e && e.message ? e.message : "不明なエラー")); setBusy(""); });
@@ -304,10 +319,11 @@ function App() {
           <div className="row"><label className="label">タイトル</label><input className="inp" value={title} onChange={function (e) { setTitle(e.target.value); }} placeholder="作品タイトル" /></div>
           <div className="row"><label className="label">著者名・ペンネーム（任意）</label><input className="inp" value={author} onChange={function (e) { setAuthor(e.target.value); }} placeholder="例：白川 ことね" /></div>
           <div className="row"><label className="label">帯のキャッチコピー（任意）</label><input className="inp" value={obi} onChange={function (e) { setObi(e.target.value); }} placeholder="例：もう一度、恋をしてもいいですか。（空なら帯なし）" /></div>
-          <div className="row"><label className="label">作品の内容・テーマ（任意）</label><textarea className="inp" rows="2" value={theme} onChange={function (e) { setTheme(e.target.value); }} placeholder="例：温泉地を舞台にした大人の恋愛" /></div>
+          <div className="row"><label className="label">ジャンル（任意）</label><input className="inp" value={genre} onChange={function (e) { setGenre(e.target.value); }} placeholder="例：恋愛小説／ミステリー／実用書／エッセイ" /></div>
+          <div className="row"><label className="label">作品の内容・世界観（任意）</label><textarea className="inp" rows="2" value={theme} onChange={function (e) { setTheme(e.target.value); }} placeholder="例：温泉地を舞台にした大人の再生の物語" /></div>
 
           <div className="row">
-            <label className="label">画風プリセット</label>
+            <label className="label">書影デザインプリセット</label>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
               {PRESETS.map(function (p) {
                 return (
