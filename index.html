@@ -6,7 +6,7 @@
 <title>GLO 書影メーカー</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;500;700;800&family=Zen+Maru+Gothic:wght@500;700;900&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;500;700;800&family=Zen+Maru+Gothic:wght@500;700;900&family=Shippori+Mincho:wght@500;700;800&family=Zen+Kaku+Gothic+New:wght@500;700;900&display=swap" rel="stylesheet" />
 <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
 <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
 <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
@@ -20,7 +20,6 @@
   .badge { background: #119A50; color: #fff; font-family: 'Zen Maru Gothic', sans-serif; font-weight: 900; font-size: 14px; border-radius: 10px; padding: 5px 8px; letter-spacing: .05em; }
   .brandname { font-family: 'Zen Maru Gothic', sans-serif; font-weight: 900; font-size: 20px; letter-spacing: .06em; }
   .ver { background: #F7B500; color: #5B4300; font-weight: 900; font-size: 12px; border-radius: 999px; padding: 3px 10px; letter-spacing: .05em; }
-  .back { background: #fff; color: #0B7A3D; border: 2px solid #D9E8DD; border-radius: 999px; padding: 7px 16px; font-size: 13px; font-weight: 800; cursor: pointer; text-decoration: none; letter-spacing: .05em; }
   .wrap { max-width: 1100px; margin: 0 auto; padding: 28px 24px 80px; }
   .card { background: #fff; border: 2px solid #D9E8DD; border-radius: 18px; padding: 22px; }
   h2.title { font-family: 'Zen Maru Gothic', sans-serif; font-size: 22px; font-weight: 900; margin: 0 0 4px; color: #085C2E; }
@@ -45,18 +44,22 @@
   .adj { background: #F4FAF6; border: 2px solid #D9E8DD; border-radius: 14px; padding: 16px; margin-top: 16px; }
   .adjrow { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 12px; flex-wrap: wrap; }
   .pill { display: inline-flex; align-items: center; gap: 8px; background: #E3F4E9; border: 2px solid #BFE3CD; border-radius: 999px; padding: 4px 6px 4px 12px; font-size: 12px; font-weight: 800; color: #0B7A3D; }
-  .stepbox { background: #F4FAF6; border: 2px solid #D9E8DD; border-radius: 14px; padding: 14px 16px; margin-top: 4px; }
+  .fontload { position: absolute; left: -9999px; top: -9999px; visibility: hidden; }
 </style>
 </head>
 <body>
 <div id="root"></div>
+<div class="fontload" aria-hidden="true">
+  <span style="font-family:'Shippori Mincho';font-weight:800">あ亜A明朝</span>
+  <span style="font-family:'Zen Kaku Gothic New';font-weight:900">あ亜Aゴシック</span>
+  <span style="font-family:'M PLUS Rounded 1c';font-weight:800">あ亜A丸</span>
+</div>
 <script type="text/babel">
 const { useState, useRef, useEffect } = React;
 
 var SUPABASE_URL = "https://xcxwvrgjkhtgksufplvw.supabase.co";
 var PUBLISHABLE_KEY = "sb_publishable_eOkAEuN4FiFhwvtAGFdOmA_ZyNOwLdI";
 var IMG_FN = SUPABASE_URL + "/functions/v1/generate-cover-image";
-var STUDIO_URL = "https://claude.ai/";
 
 // 四六判 仕上がり 188mm×128mm（縦横比 188:128）。内部 1024×1504、書き出し2倍。
 var COVER = { w: 1024, h: 1504 };
@@ -69,41 +72,43 @@ var C = {
 var PRESETS = [
   { id: "bungei", label: "文芸・実写写真風", desc: "リアルで物語性のある",
     spec: "写真のようにリアルで、物語の一場面を切り取ったような表紙。人物や部屋、街、光と影を使い、静かな緊張感や余韻を出す。色味は落ち着いたトーンで、文芸小説らしい重厚感を持たせる。",
-    pos: "bottom", color: "#FFFFFF", obiColor: "#11332A", obiTextColor: "#FFFFFF", font: "mincho", plate: "soft", tscale: 1 },
+    pos: "bottom", color: "#FFFFFF", obiColor: "#11332A", obiTextColor: "#FFFFFF", font: "mincho", vertical: true, tscale: 1 },
   { id: "mystery", label: "ダークミステリー風", desc: "黒・青・影で緊張感",
     spec: "黒・紺・青・白を中心に、暗く緊張感のあるミステリー小説の表紙。光と影のコントラストを強くし、事件性・謎・恐怖・孤独感が伝わる雰囲気。象徴的なモチーフを大きく印象的に配置する。",
-    pos: "center", color: "#FFFFFF", obiColor: "#0A1A33", obiTextColor: "#FFFFFF", font: "gothic", plate: "soft", tscale: 1.1 },
+    pos: "center", color: "#FFFFFF", obiColor: "#0A1A33", obiTextColor: "#FFFFFF", font: "gothic", vertical: true, tscale: 1.05 },
   { id: "business", label: "ビジネス書タイポ風", desc: "余白と大きな文字",
     spec: "白や淡い背景を基調に、タイトル文字を主役にしたビジネス書風。余白を広く取り、知的で信頼感のあるデザイン。装飾は最小限で、中央〜上部に大きな文字スペースを大きく確保する。背景はごくシンプルに。",
-    pos: "top", color: "#1A1A1A", obiColor: "#F2C200", obiTextColor: "#222222", font: "gothic", plate: "none", tscale: 1.2 },
+    pos: "top", color: "#1A1A1A", obiColor: "#F2C200", obiTextColor: "#222222", font: "gothic", vertical: false, tscale: 1.15 },
   { id: "pop", label: "ポップ実用書風", desc: "明るく親しみやすい",
     spec: "明るい背景色を使い、親しみやすい人物イラストを複数配置した実用書風の表紙。堅すぎず読みやすく、テーマがひと目で伝わる。ユーモアや軽さを感じさせつつ、商業書籍としての完成度を保つ。",
-    pos: "top", color: "#1A1A1A", obiColor: "#E8552B", obiTextColor: "#FFFFFF", font: "maru", plate: "soft", tscale: 1.05 },
+    pos: "top", color: "#1A1A1A", obiColor: "#E8552B", obiTextColor: "#FFFFFF", font: "maru", vertical: false, tscale: 1.05 },
   { id: "kurashi", label: "暮らしイラスト風", desc: "やさしく安心感のある",
     spec: "クリーム色や淡いグリーンなど、やさしく清潔感のある色。シンプルな人物イラストと余白を活かし、安心感・実用性・読みやすさが伝わる表紙。中高年層にも伝わる穏やかで親切なデザイン。",
-    pos: "top", color: "#34432A", obiColor: "#6E8B3D", obiTextColor: "#FFFFFF", font: "maru", plate: "soft", tscale: 1 },
+    pos: "top", color: "#34432A", obiColor: "#6E8B3D", obiTextColor: "#FFFFFF", font: "maru", vertical: false, tscale: 1 },
   { id: "colorful", label: "カラフル物語風", desc: "個性的で印象的",
     spec: "手描き感のあるカラフルなイラストで、動物・植物・自然・人物などを印象的に配置。絵本や寓話のような温かさと個性があり、書店で目を引く。色数は多めでも全体として統一感のある上質なデザイン。",
-    pos: "top", color: "#FFFFFF", obiColor: "#C0392B", obiTextColor: "#FFFFFF", font: "maru", plate: "soft", tscale: 1 },
+    pos: "bottom", color: "#FFFFFF", obiColor: "#C0392B", obiTextColor: "#FFFFFF", font: "maru", vertical: false, tscale: 1 },
 ];
 
 function buildPrompt(preset, genre, content) {
+  var noText = "【最重要】画像内には文字・テキスト・タイトル・キャッチコピー・英数字・記号・ロゴ・看板・手書き文字・カリグラフィ・タイポグラフィを一切描かないこと。文字に見える模様や崩れた擬似文字も一切描かない。";
   var lines = [
-    "日本の商業出版で使う、縦長の書籍表紙のためのビジュアルを作成してください。Amazonの商品画像や書店店頭に並んでも違和感のない、本物の書影らしい上質な完成度にしてください。",
+    noText,
+    "日本の商業出版で使う、縦長の書籍表紙のためのビジュアルを作成してください。書店やAmazonに並んでも違和感のない、本物の書影らしい上質な完成度に。",
     genre ? ("ジャンル: " + genre) : "",
     content ? ("内容・世界観: " + content) : "",
     "デザインの方向性: " + preset.spec,
-    "構図: タイトルを最も目立たせるための主役スペースを大きく確保し、著者名のスペース、画面下部に帯（オビ）を載せる横長の帯スペースも確保する。これらの文字スペースは絵柄を詰め込まず、すっきりした余白にして、遠目でも文字が映える構図にする。",
-    "重要: 文字・タイトル・キャッチコピー・英字・数字・ロゴ・透かし・署名は一切描かない（文字はあとで別途きれいに載せます）。崩れた文字や読めない日本語も描かない。",
+    "構図: タイトル・著者名・帯をあとから載せるため、絵柄を詰め込まない無地に近い余白（上部または下部、および最下部の帯スペース）を広く確保する。主役の被写体は中央〜片側に寄せ、文字スペースと重ならないようにする。",
     "人物を描く場合は日本人・現代の服装にする。",
     "避ける表現: 安っぽいポスター風、同人誌風、過剰な装飾、AI生成感の強い質感、不自然な人物、海外ペーパーバック風。プロの装丁デザイナーが制作したような上質さにする。",
+    noText,
   ];
   return lines.filter(Boolean).join(" ");
 }
 
 var FONT_STACK = {
-  mincho: "'Yu Mincho','Hiragino Mincho ProN','MS Mincho',serif",
-  gothic: "'Hiragino Sans','Yu Gothic','Meiryo',sans-serif",
+  mincho: "'Shippori Mincho','Yu Mincho','Hiragino Mincho ProN',serif",
+  gothic: "'Zen Kaku Gothic New','Hiragino Sans','Yu Gothic',sans-serif",
   maru: "'M PLUS Rounded 1c','Zen Maru Gothic',sans-serif",
 };
 
@@ -118,11 +123,6 @@ function isLight(hex) {
   if (typeof hex !== "string" || hex.charAt(0) !== "#") return true;
   var r = parseInt(hex.substr(1, 2), 16), g = parseInt(hex.substr(3, 2), 16), b = parseInt(hex.substr(5, 2), 16);
   return (0.299 * r + 0.587 * g + 0.114 * b) > 140;
-}
-function roundRect(ctx, x, y, w, h, r) {
-  ctx.beginPath(); ctx.moveTo(x + r, y);
-  ctx.arcTo(x + w, y, x + w, y + h, r); ctx.arcTo(x + w, y + h, x, y + h, r);
-  ctx.arcTo(x, y + h, x, y, r); ctx.arcTo(x, y, x + w, y, r); ctx.closePath();
 }
 function extractImage(data) {
   if (!data) return null;
@@ -140,6 +140,19 @@ function loadImg(url, cors) {
     im.src = url;
   });
 }
+function setLetterSpacing(ctx, v) { try { ctx.letterSpacing = v; } catch (e) {} }
+// 縦書きで90度回転させたい文字
+function isRotateChar(ch) { return "ー―‐-－〜～(())（）「」『』【】[]{}<>＜＞…".indexOf(ch) >= 0; }
+
+function strokeFill(ctx, ch, x, y, color, rotate) {
+  if (rotate) {
+    ctx.save(); ctx.translate(x, y); ctx.rotate(Math.PI / 2);
+    ctx.strokeText(ch, 0, 0); ctx.fillStyle = color; ctx.fillText(ch, 0, 0);
+    ctx.restore();
+  } else {
+    ctx.strokeText(ch, x, y); ctx.fillStyle = color; ctx.fillText(ch, x, y);
+  }
+}
 
 function composite(img, o) {
   var W = COVER.w, H = COVER.h, scale = o.scale || 2;
@@ -155,64 +168,93 @@ function composite(img, o) {
   var obiH = hasObi ? H * 0.15 : 0;
   var pos = o.pos || "top";
   var light = isLight(o.color);
-
-  var tLines = wrapTitle(o.title);
-  var per = Math.max.apply(null, tLines.map(function (l) { return l.length; }));
-  var tSize = Math.min(W * 0.78 / Math.max(per, 1), W * 0.155) * (o.tscale || 1);
-  tSize = Math.max(tSize, W * 0.05);
-  var gap = tSize * 1.32;
-  ctx.font = "700 " + tSize + "px " + font;
-  var maxLineW = 0;
-  for (var k = 0; k < tLines.length; k++) maxLineW = Math.max(maxLineW, ctx.measureText(tLines[k]).width);
-  var hasAuthor = o.author && o.author.trim();
-  var aSize = tSize * 0.34;
-  var blockH = (tLines.length - 1) * gap + tSize + (hasAuthor ? aSize * 1.8 : 0);
-
-  var areaTop = H * 0.06, areaBottom = (H - obiH) - H * 0.04;
-  var cy;
-  if (pos === "top") cy = areaTop + blockH / 2 + H * 0.04;
-  else if (pos === "bottom") cy = areaBottom - blockH / 2;
-  else cy = (areaTop + areaBottom) / 2;
-  var topY = cy - blockH / 2;
-
-  if (o.plate && o.plate !== "none") {
-    var alpha = o.plate === "strong" ? 0.5 : 0.28;
-    var padX = tSize * 0.7, padY = tSize * 0.55;
-    var plateW = Math.min(maxLineW + padX * 2, W * 0.92);
-    var plateH = blockH + padY * 2;
-    var px = (W - plateW) / 2, py = topY - padY;
-    ctx.fillStyle = light ? ("rgba(0,0,0," + alpha + ")") : ("rgba(255,255,255," + alpha + ")");
-    roundRect(ctx, px, py, plateW, plateH, tSize * 0.3); ctx.fill();
-  }
+  var areaTop = H * 0.07, areaBottom = (H - obiH) - H * 0.05;
 
   ctx.textAlign = "center"; ctx.textBaseline = "middle";
-  ctx.font = "700 " + tSize + "px " + font;
-  ctx.lineJoin = "round"; ctx.lineWidth = tSize * 0.14;
-  ctx.strokeStyle = light ? "rgba(0,0,0,0.55)" : "rgba(255,255,255,0.7)";
-  ctx.shadowColor = light ? "rgba(0,0,0,0.45)" : "rgba(255,255,255,0.35)"; ctx.shadowBlur = tSize * 0.18;
-  var ty0 = topY + tSize / 2;
-  for (var i = 0; i < tLines.length; i++) {
-    var yy = ty0 + i * gap;
-    ctx.strokeText(tLines[i], W / 2, yy);
-    ctx.fillStyle = o.color; ctx.fillText(tLines[i], W / 2, yy);
-  }
-  ctx.shadowBlur = 0;
+  ctx.lineJoin = "round";
+  // 下地は使わず、フチ取り＋影だけで視認性を確保（上品な仕上がり）
+  var strokeCol = light ? "rgba(0,0,0,0.5)" : "rgba(255,255,255,0.62)";
+  var shadowCol = light ? "rgba(0,0,0,0.5)" : "rgba(0,0,0,0.28)";
 
-  if (hasAuthor) {
-    ctx.font = "500 " + aSize + "px " + font;
-    ctx.lineWidth = aSize * 0.16; ctx.strokeStyle = light ? "rgba(0,0,0,0.5)" : "rgba(255,255,255,0.6)";
-    var ay = topY + (tLines.length - 1) * gap + tSize + aSize * 1.1;
-    ctx.strokeText(o.author.trim(), W / 2, ay);
-    ctx.fillStyle = o.color; ctx.fillText(o.author.trim(), W / 2, ay);
+  if (o.vertical) {
+    // ===== 縦書き =====
+    var title = o.title;
+    var vSize = Math.min(W * 0.16, (areaBottom - areaTop) / Math.max(title.length, 1) * 1.0) * (o.tscale || 1);
+    vSize = Math.max(vSize, W * 0.06);
+    var charGap = vSize * 1.12;
+    var maxPer = Math.max(1, Math.floor((areaBottom - areaTop) / charGap));
+    var cols = wrapByCount(title, maxPer); // 右→左の順に並べる
+    var colGap = vSize * 1.6;
+    var nCols = cols.length;
+    var usedRows = Math.min(maxPer, title.length);
+    var blockHV = (usedRows - 1) * charGap + vSize;
+    var topY = pos === "top" ? (areaTop + H * 0.01) : (pos === "bottom" ? (areaBottom - blockHV) : ((areaTop + areaBottom) / 2 - blockHV / 2));
+    var totalW = (nCols - 1) * colGap;
+    var xRight = W / 2 + totalW / 2;
+    ctx.font = "800 " + vSize + "px " + font;
+    setLetterSpacing(ctx, "0px");
+    ctx.lineWidth = vSize * 0.13;
+    ctx.strokeStyle = strokeCol; ctx.shadowColor = shadowCol; ctx.shadowBlur = vSize * 0.16;
+    for (var ci = 0; ci < nCols; ci++) {
+      var colChars = cols[ci];
+      var x = xRight - ci * colGap;
+      var y0 = topY + vSize / 2;
+      for (var k = 0; k < colChars.length; k++) {
+        var ch = colChars[k];
+        strokeFill(ctx, ch, x, y0 + k * charGap, o.color, isRotateChar(ch));
+      }
+    }
+    ctx.shadowBlur = 0;
+    // 著者名（縦書きブロックの左に小さく縦書き）
+    if (o.author && o.author.trim()) {
+      var aV = vSize * 0.4;
+      ctx.font = "500 " + aV + "px " + font;
+      ctx.lineWidth = aV * 0.14; ctx.strokeStyle = strokeCol; ctx.shadowColor = shadowCol; ctx.shadowBlur = aV * 0.3;
+      var ax = xRight - nCols * colGap + colGap * 0.15;
+      var ach = o.author.trim().split("");
+      for (var m = 0; m < ach.length; m++) strokeFill(ctx, ach[m], ax, topY + vSize / 2 + m * aV * 1.1, o.color, isRotateChar(ach[m]));
+      ctx.shadowBlur = 0;
+    }
+  } else {
+    // ===== 横書き =====
+    var tLines = wrapTitle(o.title);
+    var per = Math.max.apply(null, tLines.map(function (l) { return l.length; }));
+    var tSize = Math.min(W * 0.8 / Math.max(per, 1), W * 0.15) * (o.tscale || 1);
+    tSize = Math.max(tSize, W * 0.05);
+    var gap = tSize * 1.34;
+    var hasAuthor = o.author && o.author.trim();
+    var aSize = tSize * 0.34;
+    var blockH = (tLines.length - 1) * gap + tSize + (hasAuthor ? aSize * 1.9 : 0);
+    var cy = pos === "top" ? (areaTop + blockH / 2 + H * 0.02) : (pos === "bottom" ? (areaBottom - blockH / 2) : ((areaTop + areaBottom) / 2));
+    var topYH = cy - blockH / 2;
+    ctx.font = "800 " + tSize + "px " + font;
+    setLetterSpacing(ctx, (tSize * 0.06) + "px");
+    ctx.lineWidth = tSize * 0.13;
+    ctx.strokeStyle = strokeCol; ctx.shadowColor = shadowCol; ctx.shadowBlur = tSize * 0.16;
+    var ty0 = topYH + tSize / 2;
+    for (var i = 0; i < tLines.length; i++) strokeFill(ctx, tLines[i], W / 2, ty0 + i * gap, o.color, false);
+    ctx.shadowBlur = 0;
+    if (hasAuthor) {
+      ctx.font = "500 " + aSize + "px " + font;
+      setLetterSpacing(ctx, (aSize * 0.12) + "px");
+      ctx.lineWidth = aSize * 0.14; ctx.strokeStyle = strokeCol; ctx.shadowColor = shadowCol; ctx.shadowBlur = aSize * 0.3;
+      strokeFill(ctx, o.author.trim(), W / 2, topYH + (tLines.length - 1) * gap + tSize + aSize * 1.2, o.color, false);
+      ctx.shadowBlur = 0;
+    }
+    setLetterSpacing(ctx, "0px");
   }
 
+  // 帯（オビ）
   if (hasObi) {
-    ctx.fillStyle = o.obiColor || "#0B3D2E"; ctx.fillRect(0, H - obiH, W, obiH);
+    ctx.shadowBlur = 0; ctx.lineWidth = 0;
+    ctx.fillStyle = o.obiColor || "#11332A"; ctx.fillRect(0, H - obiH, W, obiH);
     var ot = o.obi.trim();
     var oLines = ot.length > 16 ? wrapByCount(ot, Math.ceil(ot.length / 2)) : [ot];
-    var oSize = Math.min(W * 0.9 / Math.max(oLines[0].length, 1), W * 0.07);
+    var oSize = Math.min(W * 0.9 / Math.max(oLines[0].length, 1), W * 0.068);
     ctx.font = "800 " + oSize + "px " + FONT_STACK.maru; ctx.fillStyle = o.obiTextColor || "#FFFFFF";
+    setLetterSpacing(ctx, (oSize * 0.04) + "px");
     for (var j = 0; j < oLines.length; j++) ctx.fillText(oLines[j], W / 2, (H - obiH / 2) + (j - (oLines.length - 1) / 2) * oSize * 1.25);
+    setLetterSpacing(ctx, "0px");
   }
   return c.toDataURL("image/png");
 }
@@ -233,25 +275,34 @@ function App() {
   var ps = useState("bottom"); var pos = ps[0], setPos = ps[1];
   var ts = useState(1); var tscale = ts[0], setTscale = ts[1];
   var tc = useState("#FFFFFF"); var tcolor = tc[0], setTcolor = tc[1];
-  var pl = useState("soft"); var plate = pl[0], setPlate = pl[1];
+  var vt = useState(true); var vertical = vt[0], setVertical = vt[1];
   var af = useState("mincho"); var activeFont = af[0], setActiveFont = af[1];
   var ao = useState({ c: "#11332A", t: "#FFFFFF" }); var activeObi = ao[0], setActiveObi = ao[1];
 
   var bgRef = useRef(null);
   var preset = PRESETS.filter(function (p) { return p.id === presetId; })[0] || PRESETS[0];
 
+  // フォントを確実に読み込む（canvasはWebフォントの読み込みを誘発しないため）
+  useEffect(function () {
+    if (document.fonts && document.fonts.load) {
+      ["Shippori Mincho", "Zen Kaku Gothic New", "M PLUS Rounded 1c"].forEach(function (f) {
+        try { document.fonts.load("800 40px '" + f + "'"); } catch (e) {}
+      });
+    }
+  }, []);
+
   function recompose() {
     if (!bgRef.current) return;
     try {
       var png = composite(bgRef.current, {
         title: title.trim() || "（タイトル）", author: author, obi: obi,
-        font: activeFont, pos: pos, tscale: tscale, color: tcolor, plate: plate,
+        font: activeFont, pos: pos, tscale: tscale, color: tcolor, vertical: vertical,
         obiColor: activeObi.c, obiTextColor: activeObi.t, scale: 2,
       });
       setCover(png);
     } catch (e) { setErr("文字の書き出しに失敗しました（CORS制限の可能性）。"); }
   }
-  useEffect(function () { if (hasBg) recompose(); }, [title, author, obi, pos, tscale, tcolor, plate, hasBg]);
+  useEffect(function () { if (hasBg) recompose(); }, [title, author, obi, pos, tscale, tcolor, vertical, hasBg]);
 
   function onRefFile(e) {
     var f = e.target.files && e.target.files[0]; if (!f) return;
@@ -262,8 +313,8 @@ function App() {
     setErr("");
     if (!title.trim()) { setErr("タイトルを入力してください。"); return; }
     var prompt = buildPrompt(preset, genre.trim(), theme.trim());
-    if (refImage) prompt = prompt + " 添付の参考画像の色調・雰囲気・構図に似せること。";
-    setBusy("AIがイラストを生成しています…（30秒〜1分ほど）");
+    if (refImage) prompt = prompt + " 添付の参考画像の色調・雰囲気・構図に似せること（ただし文字は描かない）。";
+    setBusy("AIがイラストを生成しています…（2〜3分ほど）");
     var body = { prompt: prompt, size: "portrait" };
     if (refImage) {
       var parts = refImage.split(","); body.reference = parts[1];
@@ -286,7 +337,7 @@ function App() {
       .then(function (img) {
         bgRef.current = img;
         setActiveFont(preset.font); setActiveObi({ c: preset.obiColor, t: preset.obiTextColor });
-        setPos(preset.pos); setTcolor(preset.color); setTscale(preset.tscale || 1); setPlate(preset.plate || "soft");
+        setPos(preset.pos); setTcolor(preset.color); setTscale(preset.tscale || 1); setVertical(!!preset.vertical);
         setBusy(""); setHasBg(true);
       })
       .catch(function (e) { setErr("生成に失敗しました：" + (e && e.message ? e.message : "不明なエラー")); setBusy(""); });
@@ -367,7 +418,7 @@ function App() {
 
             <div style={{ textAlign: "center", marginTop: 8 }}>
               <button className="btn" onClick={run} disabled={!!busy}>✨ 書影を作る</button>
-              <div className="muted" style={{ marginTop: 8 }}>生成には30秒〜1分ほどかかります。</div>
+              <div className="muted" style={{ marginTop: 8 }}>生成には2〜3分ほどかかります。</div>
             </div>
             {busy ? <div className="info">{busy}</div> : null}
             {err ? <div className="err">⚠ {err}</div> : null}
@@ -375,6 +426,8 @@ function App() {
             {hasBg ? (
               <div className="adj">
                 <div className="label" style={{ marginBottom: 12 }}>仕上がりの微調整（再生成せず即反映）</div>
+                <div className="adjrow"><span className="muted" style={{ fontWeight: 800 }}>タイトルの向き</span>
+                  <Seg value={vertical ? "v" : "h"} onChange={function (v) { setVertical(v === "v"); }} opts={[{ v: "v", label: "縦書き" }, { v: "h", label: "横書き" }]} /></div>
                 <div className="adjrow"><span className="muted" style={{ fontWeight: 800 }}>タイトル位置</span>
                   <Seg value={pos} onChange={setPos} opts={[{ v: "top", label: "上" }, { v: "center", label: "中央" }, { v: "bottom", label: "下" }]} /></div>
                 <div className="adjrow"><span className="muted" style={{ fontWeight: 800 }}>文字の大きさ</span>
@@ -385,8 +438,6 @@ function App() {
                     <button className="btn2" onClick={function () { setTcolor("#222222"); }}>黒</button>
                     <input type="color" value={tcolor} onChange={function (e) { setTcolor(e.target.value); }} style={{ width: 38, height: 30, border: "none", background: "none" }} />
                   </span></div>
-                <div className="adjrow"><span className="muted" style={{ fontWeight: 800 }}>文字の下地</span>
-                  <Seg value={plate} onChange={setPlate} opts={[{ v: "none", label: "なし" }, { v: "soft", label: "うすめ" }, { v: "strong", label: "しっかり" }]} /></div>
               </div>
             ) : null}
           </div>
@@ -398,7 +449,7 @@ function App() {
                 ? <img src={cover} alt="書影" style={{ width: "100%", maxWidth: 300, borderRadius: 6, boxShadow: "0 14px 36px rgba(0,0,0,0.28)" }} />
                 : <div style={{ width: "100%", maxWidth: 280, aspectRatio: COVER.w + "/" + COVER.h, border: "2.5px dashed " + C.line, borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center", color: C.inkSoft, fontSize: 13, textAlign: "center", padding: 16, background: "#fff" }}>ここに完成書影が表示されます</div>}
               {cover ? <button className="btn" onClick={save}>📥 PNGで保存</button> : null}
-              {cover ? <div className="muted" style={{ textAlign: "center" }}>左の「微調整」で位置・大きさ・色・下地を変えると、その場で反映されます。画風や内容を変えたい時は「書影を作る」で作り直し。</div> : null}
+              {cover ? <div className="muted" style={{ textAlign: "center" }}>左の「微調整」で向き・位置・大きさ・色を変えると、その場で反映されます。画風や内容を変えたい時は「書影を作る」で作り直し。</div> : null}
             </div>
           </div>
         </div>
