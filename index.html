@@ -170,7 +170,7 @@ function composite(img, o) {
 
   var font = FONT_STACK[o.font] || FONT_STACK.mincho;
   var hasObi = o.obi && o.obi.trim();
-  var obiH = hasObi ? H * 0.15 : 0;
+  var obiH = hasObi ? H * 0.15 * (o.obiHScale || 1) : 0;
   var pos = o.pos || "top";
   var light = isLight(o.color);
   var areaTop = H * 0.07, areaBottom = (H - obiH) - H * 0.05;
@@ -257,13 +257,18 @@ function composite(img, o) {
   // 帯（オビ）
   if (hasObi) {
     ctx.shadowBlur = 0; ctx.lineWidth = 0;
-    ctx.fillStyle = o.obiColor || "#11332A"; ctx.fillRect(0, H - obiH, W, obiH);
+    setLetterSpacing(ctx, "0px");
+    var obiYBase = H - obiH; // 既定は最下部
+    var obiY = obiYBase + (typeof o.obiDy === "number" ? o.obiDy : 0) * (H * 0.30);
+    if (obiY < 0) obiY = 0; if (obiY + obiH > H) obiY = H - obiH;
+    ctx.fillStyle = o.obiColor || "#11332A"; ctx.fillRect(0, obiY, W, obiH);
     var ot = o.obi.trim();
     var oLines = ot.length > 16 ? wrapByCount(ot, Math.ceil(ot.length / 2)) : [ot];
-    var oSize = Math.min(W * 0.9 / Math.max(oLines[0].length, 1), W * 0.068);
-    ctx.font = "800 " + oSize + "px " + FONT_STACK.maru; ctx.fillStyle = o.obiTextColor || "#FFFFFF";
+    var oBase = Math.min(W * 0.9 / Math.max(oLines[0].length, 1), W * 0.068);
+    var oSize = oBase * (o.obiScale || 1);
+    ctx.font = "800 " + oSize + "px " + (FONT_STACK[o.obiFont] || FONT_STACK.maru); ctx.fillStyle = o.obiTextColor || "#FFFFFF";
     setLetterSpacing(ctx, (oSize * 0.04) + "px");
-    for (var j = 0; j < oLines.length; j++) ctx.fillText(oLines[j], W / 2, (H - obiH / 2) + (j - (oLines.length - 1) / 2) * oSize * 1.25);
+    for (var j = 0; j < oLines.length; j++) ctx.fillText(oLines[j], W / 2, (obiY + obiH / 2) + (j - (oLines.length - 1) / 2) * oSize * 1.25);
     setLetterSpacing(ctx, "0px");
   }
   return c.toDataURL("image/png");
@@ -290,6 +295,10 @@ function App() {
   var dys = useState(0); var dy = dys[0], setDy = dys[1];
   var af = useState("mincho"); var activeFont = af[0], setActiveFont = af[1];
   var ao = useState({ c: "#11332A", t: "#FFFFFF" }); var activeObi = ao[0], setActiveObi = ao[1];
+  var obs = useState(1); var obiScale = obs[0], setObiScale = obs[1];
+  var obh = useState(1); var obiHScale = obh[0], setObiHScale = obh[1];
+  var obd = useState(0); var obiDy = obd[0], setObiDy = obd[1];
+  var obf = useState("maru"); var obiFont = obf[0], setObiFont = obf[1];
 
   var bgRef = useRef(null);
   var preset = PRESETS.filter(function (p) { return p.id === presetId; })[0] || PRESETS[0];
@@ -310,12 +319,14 @@ function App() {
         title: title.trim() || "（タイトル）", author: author, obi: obi,
         font: activeFont, pos: pos, tscale: tscale, color: tcolor, vertical: vertical,
         dx: dx, dy: dy,
-        obiColor: activeObi.c, obiTextColor: activeObi.t, scale: 2,
+        obiColor: activeObi.c, obiTextColor: activeObi.t,
+        obiScale: obiScale, obiHScale: obiHScale, obiDy: obiDy, obiFont: obiFont,
+        scale: 2,
       });
       setCover(png);
     } catch (e) { setErr("文字の書き出しに失敗しました（CORS制限の可能性）。"); }
   }
-  useEffect(function () { if (hasBg) recompose(); }, [title, author, obi, pos, tscale, tcolor, vertical, dx, dy, activeFont, hasBg]);
+  useEffect(function () { if (hasBg) recompose(); }, [title, author, obi, pos, tscale, tcolor, vertical, dx, dy, activeFont, activeObi, obiScale, obiHScale, obiDy, obiFont, hasBg]);
 
   function onRefFile(e) {
     var f = e.target.files && e.target.files[0]; if (!f) return;
@@ -352,6 +363,7 @@ function App() {
         setActiveFont(preset.font); setActiveObi({ c: preset.obiColor, t: preset.obiTextColor });
         setPos(preset.pos); setTcolor(preset.color); setTscale(preset.tscale || 1); setVertical(!!preset.vertical);
         setDx(0); setDy(0);
+        setObiScale(1); setObiHScale(1); setObiDy(0); setObiFont("maru");
         setBusy(""); setHasBg(true);
       })
       .catch(function (e) { setErr("生成に失敗しました：" + (e && e.message ? e.message : "不明なエラー")); setBusy(""); });
@@ -458,6 +470,25 @@ function App() {
                     <button className="btn2" onClick={function () { setTcolor("#222222"); }}>黒</button>
                     <input type="color" value={tcolor} onChange={function (e) { setTcolor(e.target.value); }} style={{ width: 38, height: 30, border: "none", background: "none" }} />
                   </span></div>
+
+                {obi.trim() ? (
+                  <div style={{ borderTop: "2px dashed " + C.line, marginTop: 6, paddingTop: 12 }}>
+                    <div className="label" style={{ marginBottom: 10 }}>帯（オビ）の微調整</div>
+                    <div className="adjrow"><span className="muted" style={{ fontWeight: 800 }}>帯のフォント</span>
+                      <Seg value={obiFont} onChange={setObiFont} opts={FONT_OPTIONS} /></div>
+                    <div className="adjrow"><span className="muted" style={{ fontWeight: 800 }}>帯の文字サイズ</span>
+                      <input type="range" min="0.6" max="1.6" step="0.05" value={obiScale} onChange={function (e) { setObiScale(parseFloat(e.target.value)); }} style={{ flex: 1, minWidth: 120, accentColor: C.green }} /></div>
+                    <div className="adjrow"><span className="muted" style={{ fontWeight: 800 }}>帯の高さ</span>
+                      <input type="range" min="0.6" max="1.8" step="0.05" value={obiHScale} onChange={function (e) { setObiHScale(parseFloat(e.target.value)); }} style={{ flex: 1, minWidth: 120, accentColor: C.green }} /></div>
+                    <div className="adjrow"><span className="muted" style={{ fontWeight: 800 }}>帯の上下位置</span>
+                      <input type="range" min="-1" max="1" step="0.02" value={obiDy} onChange={function (e) { setObiDy(parseFloat(e.target.value)); }} style={{ flex: 1, minWidth: 120, accentColor: C.green }} /></div>
+                    <div className="adjrow"><span className="muted" style={{ fontWeight: 800 }}>帯の色 / 文字色</span>
+                      <span style={{ display: "inline-flex", gap: 8, alignItems: "center" }}>
+                        <input type="color" value={activeObi.c} onChange={function (e) { setActiveObi({ c: e.target.value, t: activeObi.t }); }} style={{ width: 38, height: 30, border: "none", background: "none" }} title="帯の色" />
+                        <input type="color" value={activeObi.t} onChange={function (e) { setActiveObi({ c: activeObi.c, t: e.target.value }); }} style={{ width: 38, height: 30, border: "none", background: "none" }} title="帯の文字色" />
+                      </span></div>
+                  </div>
+                ) : null}
               </div>
             ) : null}
           </div>
