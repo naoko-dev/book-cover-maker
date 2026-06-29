@@ -111,6 +111,11 @@ var FONT_STACK = {
   gothic: "'Zen Kaku Gothic New','Hiragino Sans','Yu Gothic',sans-serif",
   maru: "'M PLUS Rounded 1c','Zen Maru Gothic',sans-serif",
 };
+var FONT_OPTIONS = [
+  { v: "mincho", label: "明朝体" },
+  { v: "gothic", label: "ゴシック体" },
+  { v: "maru", label: "丸ゴシック" },
+];
 
 function wrapByCount(text, per) { var l = []; for (var i = 0; i < text.length; i += per) l.push(text.slice(i, i + per)); return l; }
 function wrapTitle(title) {
@@ -169,6 +174,10 @@ function composite(img, o) {
   var pos = o.pos || "top";
   var light = isLight(o.color);
   var areaTop = H * 0.07, areaBottom = (H - obiH) - H * 0.05;
+  // 微調整オフセット（-1〜+1）。dx:左右、dy:上下
+  var dx = (typeof o.dx === "number" ? o.dx : 0) * (W * 0.42);
+  var dy = (typeof o.dy === "number" ? o.dy : 0) * (H * 0.40);
+  var cxBase = W / 2 + dx;
 
   ctx.textAlign = "center"; ctx.textBaseline = "middle";
   ctx.lineJoin = "round";
@@ -189,8 +198,9 @@ function composite(img, o) {
     var usedRows = Math.min(maxPer, title.length);
     var blockHV = (usedRows - 1) * charGap + vSize;
     var topY = pos === "top" ? (areaTop + H * 0.01) : (pos === "bottom" ? (areaBottom - blockHV) : ((areaTop + areaBottom) / 2 - blockHV / 2));
+    topY += dy;
     var totalW = (nCols - 1) * colGap;
-    var xRight = W / 2 + totalW / 2;
+    var xRight = cxBase + totalW / 2;
     ctx.font = "800 " + vSize + "px " + font;
     setLetterSpacing(ctx, "0px");
     ctx.lineWidth = vSize * 0.13;
@@ -226,19 +236,19 @@ function composite(img, o) {
     var aSize = tSize * 0.34;
     var blockH = (tLines.length - 1) * gap + tSize + (hasAuthor ? aSize * 1.9 : 0);
     var cy = pos === "top" ? (areaTop + blockH / 2 + H * 0.02) : (pos === "bottom" ? (areaBottom - blockH / 2) : ((areaTop + areaBottom) / 2));
-    var topYH = cy - blockH / 2;
+    var topYH = cy - blockH / 2 + dy;
     ctx.font = "800 " + tSize + "px " + font;
     setLetterSpacing(ctx, (tSize * 0.06) + "px");
     ctx.lineWidth = tSize * 0.13;
     ctx.strokeStyle = strokeCol; ctx.shadowColor = shadowCol; ctx.shadowBlur = tSize * 0.16;
     var ty0 = topYH + tSize / 2;
-    for (var i = 0; i < tLines.length; i++) strokeFill(ctx, tLines[i], W / 2, ty0 + i * gap, o.color, false);
+    for (var i = 0; i < tLines.length; i++) strokeFill(ctx, tLines[i], cxBase, ty0 + i * gap, o.color, false);
     ctx.shadowBlur = 0;
     if (hasAuthor) {
       ctx.font = "500 " + aSize + "px " + font;
       setLetterSpacing(ctx, (aSize * 0.12) + "px");
       ctx.lineWidth = aSize * 0.14; ctx.strokeStyle = strokeCol; ctx.shadowColor = shadowCol; ctx.shadowBlur = aSize * 0.3;
-      strokeFill(ctx, o.author.trim(), W / 2, topYH + (tLines.length - 1) * gap + tSize + aSize * 1.2, o.color, false);
+      strokeFill(ctx, o.author.trim(), cxBase, topYH + (tLines.length - 1) * gap + tSize + aSize * 1.2, o.color, false);
       ctx.shadowBlur = 0;
     }
     setLetterSpacing(ctx, "0px");
@@ -276,6 +286,8 @@ function App() {
   var ts = useState(1); var tscale = ts[0], setTscale = ts[1];
   var tc = useState("#FFFFFF"); var tcolor = tc[0], setTcolor = tc[1];
   var vt = useState(true); var vertical = vt[0], setVertical = vt[1];
+  var dxs = useState(0); var dx = dxs[0], setDx = dxs[1];
+  var dys = useState(0); var dy = dys[0], setDy = dys[1];
   var af = useState("mincho"); var activeFont = af[0], setActiveFont = af[1];
   var ao = useState({ c: "#11332A", t: "#FFFFFF" }); var activeObi = ao[0], setActiveObi = ao[1];
 
@@ -297,12 +309,13 @@ function App() {
       var png = composite(bgRef.current, {
         title: title.trim() || "（タイトル）", author: author, obi: obi,
         font: activeFont, pos: pos, tscale: tscale, color: tcolor, vertical: vertical,
+        dx: dx, dy: dy,
         obiColor: activeObi.c, obiTextColor: activeObi.t, scale: 2,
       });
       setCover(png);
     } catch (e) { setErr("文字の書き出しに失敗しました（CORS制限の可能性）。"); }
   }
-  useEffect(function () { if (hasBg) recompose(); }, [title, author, obi, pos, tscale, tcolor, vertical, hasBg]);
+  useEffect(function () { if (hasBg) recompose(); }, [title, author, obi, pos, tscale, tcolor, vertical, dx, dy, activeFont, hasBg]);
 
   function onRefFile(e) {
     var f = e.target.files && e.target.files[0]; if (!f) return;
@@ -314,7 +327,7 @@ function App() {
     if (!title.trim()) { setErr("タイトルを入力してください。"); return; }
     var prompt = buildPrompt(preset, genre.trim(), theme.trim());
     if (refImage) prompt = prompt + " 添付の参考画像の色調・雰囲気・構図に似せること（ただし文字は描かない）。";
-    setBusy("AIがイラストを生成しています…（2〜3分ほど）");
+    setBusy("AIがイラストを生成しています…（1〜2分ほど）");
     var body = { prompt: prompt, size: "portrait" };
     if (refImage) {
       var parts = refImage.split(","); body.reference = parts[1];
@@ -338,6 +351,7 @@ function App() {
         bgRef.current = img;
         setActiveFont(preset.font); setActiveObi({ c: preset.obiColor, t: preset.obiTextColor });
         setPos(preset.pos); setTcolor(preset.color); setTscale(preset.tscale || 1); setVertical(!!preset.vertical);
+        setDx(0); setDy(0);
         setBusy(""); setHasBg(true);
       })
       .catch(function (e) { setErr("生成に失敗しました：" + (e && e.message ? e.message : "不明なエラー")); setBusy(""); });
@@ -418,7 +432,7 @@ function App() {
 
             <div style={{ textAlign: "center", marginTop: 8 }}>
               <button className="btn" onClick={run} disabled={!!busy}>✨ 書影を作る</button>
-              <div className="muted" style={{ marginTop: 8 }}>生成には2〜3分ほどかかります。</div>
+              <div className="muted" style={{ marginTop: 8 }}>生成には1〜2分ほどかかります。</div>
             </div>
             {busy ? <div className="info">{busy}</div> : null}
             {err ? <div className="err">⚠ {err}</div> : null}
@@ -428,8 +442,14 @@ function App() {
                 <div className="label" style={{ marginBottom: 12 }}>仕上がりの微調整（再生成せず即反映）</div>
                 <div className="adjrow"><span className="muted" style={{ fontWeight: 800 }}>タイトルの向き</span>
                   <Seg value={vertical ? "v" : "h"} onChange={function (v) { setVertical(v === "v"); }} opts={[{ v: "v", label: "縦書き" }, { v: "h", label: "横書き" }]} /></div>
-                <div className="adjrow"><span className="muted" style={{ fontWeight: 800 }}>タイトル位置</span>
+                <div className="adjrow"><span className="muted" style={{ fontWeight: 800 }}>フォント</span>
+                  <Seg value={activeFont} onChange={setActiveFont} opts={FONT_OPTIONS} /></div>
+                <div className="adjrow"><span className="muted" style={{ fontWeight: 800 }}>位置の目安</span>
                   <Seg value={pos} onChange={setPos} opts={[{ v: "top", label: "上" }, { v: "center", label: "中央" }, { v: "bottom", label: "下" }]} /></div>
+                <div className="adjrow"><span className="muted" style={{ fontWeight: 800 }}>左右の位置</span>
+                  <input type="range" min="-1" max="1" step="0.02" value={dx} onChange={function (e) { setDx(parseFloat(e.target.value)); }} style={{ flex: 1, minWidth: 120, accentColor: C.green }} /></div>
+                <div className="adjrow"><span className="muted" style={{ fontWeight: 800 }}>上下の微調整</span>
+                  <input type="range" min="-1" max="1" step="0.02" value={dy} onChange={function (e) { setDy(parseFloat(e.target.value)); }} style={{ flex: 1, minWidth: 120, accentColor: C.green }} /></div>
                 <div className="adjrow"><span className="muted" style={{ fontWeight: 800 }}>文字の大きさ</span>
                   <input type="range" min="0.6" max="1.6" step="0.05" value={tscale} onChange={function (e) { setTscale(parseFloat(e.target.value)); }} style={{ flex: 1, minWidth: 120, accentColor: C.green }} /></div>
                 <div className="adjrow"><span className="muted" style={{ fontWeight: 800 }}>文字色</span>
@@ -449,7 +469,7 @@ function App() {
                 ? <img src={cover} alt="書影" style={{ width: "100%", maxWidth: 300, borderRadius: 6, boxShadow: "0 14px 36px rgba(0,0,0,0.28)" }} />
                 : <div style={{ width: "100%", maxWidth: 280, aspectRatio: COVER.w + "/" + COVER.h, border: "2.5px dashed " + C.line, borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center", color: C.inkSoft, fontSize: 13, textAlign: "center", padding: 16, background: "#fff" }}>ここに完成書影が表示されます</div>}
               {cover ? <button className="btn" onClick={save}>📥 PNGで保存</button> : null}
-              {cover ? <div className="muted" style={{ textAlign: "center" }}>左の「微調整」で向き・位置・大きさ・色を変えると、その場で反映されます。画風や内容を変えたい時は「書影を作る」で作り直し。</div> : null}
+              {cover ? <div className="muted" style={{ textAlign: "center" }}>左の「微調整」で向き・フォント・位置（左右/上下）・大きさ・色を変えると、その場で反映されます。画風や内容を変えたい時は「書影を作る」で作り直し。</div> : null}
             </div>
           </div>
         </div>
